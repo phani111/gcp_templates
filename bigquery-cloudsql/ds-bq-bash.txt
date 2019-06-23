@@ -1,0 +1,26 @@
+"""This script can be used in either a scheduled Airflow Job or Event driven Cloud Function.
+   It exports and cleans Datastore data into a BigQuery table using GCS as intermediate step.
+   Note that this is not necessarily a py script. It is more bash commands that can be used
+   with os.system or a bashoperator."""
+
+"""***************************************************************************************
+			Export Datastore Kind to GCS Bucket. Optional Filter
+***************************************************************************************"""
+gcloud datastore export --kinds="041319survey" --namespaces="(default)" gs://dsdump
+
+"""***************************************************************************************
+			Load GCS Datastore Export into BigQuery Staging Table
+***************************************************************************************"""
+bq load --source_format=DATASTORE_BACKUP esce.april gs://dsdump/2019-04-14T17:16:26_61170/default_namespace/kind_041319survey/default_namespace_kind_041319survey.export_metadata
+
+"""***************************************************************************************
+	Query to Clean Datastore MetaData from Staging Table & Transfer to Record Table
+***************************************************************************************"""
+def append(self):
+        """Parse the data in table and append to master table -- which is partitioned by survey date!"""
+        destination_table = "AggregateSurvey"
+        query = "'SELECT * EXCEPT (__key__, __error__, __has_error__) from `esce.staging`'"
+        bq_append = ("bq --location=US query --destination_table "
+                     "cpb100-213205:esce.{0} --append --use_legacy_sql=false {1}".format(destination_table, query))
+        os.system(bq_append)
+        return

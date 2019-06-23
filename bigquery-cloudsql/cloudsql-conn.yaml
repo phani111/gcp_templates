@@ -1,0 +1,47 @@
+import os
+import MySQLdb
+import MySQLdb.cursors    
+
+if 'GOOGLE_CLOUD_PROJECT' in os.environ:
+        # Connect using the unix socket located at /cloudsql/cloudsql-connection-name.
+        # These environment variables are configured in app.yaml.
+
+        CLOUDSQL_CONNECTION_NAME = os.environ.get('CLOUDSQL_CONNECTION_NAME')
+        CLOUDSQL_USER = os.environ.get('CLOUDSQL_USER')
+        CLOUDSQL_PASSWORD = os.environ.get('CLOUDSQL_PASSWORD')
+        CLOUDSQL_DB = os.environ.get('CLOUDSQL_DB')
+        cloudsql_unix_socket = os.path.join(
+            '/cloudsql', CLOUDSQL_CONNECTION_NAME)
+
+        mysql = MySQLdb.connect(
+            unix_socket = cloudsql_unix_socket,
+            user = CLOUDSQL_USER,
+            passwd = CLOUDSQL_PASSWORD,
+            db = CLOUDSQL_DB,
+            charset="utf8",
+            use_unicode=True)
+
+
+#************************************************************
+    
+runtime: python
+env: flex
+service: service-name
+
+entrypoint: gunicorn -b :$PORT app:app
+
+runtime_config:
+  python_version: 3
+
+automatic_scaling:
+  max_num_instances: 5
+    
+# [START env_variables]
+env_variables:
+    CLOUDSQL_CONNECTION_NAME: project:us-central1:connection
+    CLOUDSQL_USER: root
+    CLOUDSQL_PASSWORD: pw
+    CLOUDSQL_DB: db
+
+beta_settings:
+  cloud_sql_instances: "project:us-central1:connection"
