@@ -33,7 +33,7 @@ REQUIREMENT_FILE = 'requirements.txt'
    Every transformation belongs to its own class, which is called in pipeline at bottom of script."""
 
 
-class JaroCalc(beam.DoFn):
+class OpenEnded(beam.DoFn):
     """transform that calculates the jaro-winkler scores (string similarity) of open ended question"""
     
     def __init__(self):
@@ -51,7 +51,7 @@ class JaroCalc(beam.DoFn):
         return [row]
 
 
-class Flagging(beam.DoFn):
+class MultipleChoice(beam.DoFn):
     """transform that flags entry comparisons when they have the same answers for multiple choice questions"""
     def __init__(self):
         super(Flagging, self).__init__()
@@ -135,8 +135,8 @@ def run():
     with beam.Pipeline(argv=argv) as p: #argv satisfies execution args here.
         (p
              | 'read bq table' >> beam.io.Read(beam.io.BigQuerySource('cpb100-213205:sample.ml_sample'))
-             | 'calculate jaro-score' >> (beam.ParDo(JaroCalc()))
-             | 'create flags' >> (beam.ParDo(Flagging()))
+             | 'similarity of score' >> (beam.ParDo(OpenEnded()))
+             | 'multiple choice flags' >> (beam.ParDo(MultipleChoice()))
              | 'model prediction' >> (beam.ParDo(MlPrediction()))
              | 'write to bq' >> beam.io.Write(beam.io.BigQuerySink(
                      'cpb100-213205:sample.cheaters'.format('cpb100-213205','sample','cheaters'),
