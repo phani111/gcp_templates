@@ -1,0 +1,15 @@
+Utilizing PubSub in Airflow is an incredibly valuable process to schedule pull or publish jobs.
+   Unfortunately, it is also a surprisingly very difficult process to setup a subscriber.
+   A publisher is quite easy and can just be done in py script with a python operator.
+   For a subscriber, I have not found luck in setting it in my py scripts.
+   Instead, I have found it best to create a PubSub operator that is called in the beginning of the DAG
+   file. Then, a bash operator can be used below which calls an executable python script with a
+   sys.argv input of the pubsub messages pulled in the pubsub operator above.
+   I haven't found an easier way that is reliable, but this atleast works, mostly...
+   There are a few resources online on how to build a PubSub Operator. However, it seems with Cloud
+   Composer using an older version of Airflow, it is necessary to build a PubSub Hook as the pre-made
+   versions on Git are not compatible as a plugin yet. (Composer uses Airflow 1.09, PubSub comes in 1.10)
+   Source code found from Josh Laird: https://medium.com/@joshlaird/ensuring-youtube-data-integrity-
+   using-data-transfer-files-with-gcps-pub-sub-composer-20aee17928a4
+   Pull Sensor is found from Apache website:
+   https://airflow.readthedocs.io/en/stable/_modules/airflow/contrib/sensors/pubsub_sensor.html
