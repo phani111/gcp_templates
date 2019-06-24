@@ -35,7 +35,7 @@ def get_json(entity_name):
 
 
 @app.route('/post/<file_name>', methods=['GET', 'POST'])
-def upload_html(file_name):
+def upload_file(file_name):
     """Retrieves a text file from GCS and uploads content as a Datastore entity"""
 
     """ 1) GCS Retrieval """
