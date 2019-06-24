@@ -7,8 +7,7 @@
    The pipeline below is an example that reads BigQuery table, performs a transformation for ML input,
    then loads a fitted ML model to make a prediction on the PCollection being passed. Data is written to BigQuery.
 
-   Purpose is to detect whether two students shared answers for an assignment given similarity between open ended
-   questions and multiple choice questions.
+   Purpose is to detect whether two students shared answers for an assignment given similarity between multiple choice questions.
 
    This pipeline contains conceptual notes in addition to syntax comments to explain why certain methods are used.
    @author: william.spangler"""
@@ -31,24 +30,6 @@ REQUIREMENT_FILE = 'requirements.txt'
    Packages are imported on the method level so the master node knows to distribute package to worker node.
    If the packages are called outside the class, the requirements will not be transferred for processing.
    Every transformation belongs to its own class, which is called in pipeline at bottom of script."""
-
-
-class OpenEnded(beam.DoFn):
-    """transform that calculates the jaro-winkler scores (string similarity) of open ended question"""
-    
-    def __init__(self):
-        """__init__ function needed at start of each class to initiate the transform""" 
-        super(JaroCalc, self).__init__()
-
-    def process(self, row):
-        #now that the class is initiated, the process function contains the details of the transform
-        import jellyfish
-    
-        try:
-            row['Answer1_similarity'] = float(jellyfish.jaro_winkler(row['student1_a1'], row['student2_a1']))
-        except ValueError:
-            row['Answer1_similarity'] = 0  # if null value than student did not answer question.
-        return [row]
 
 
 class MultipleChoice(beam.DoFn):
@@ -135,7 +116,6 @@ def run():
     with beam.Pipeline(argv=argv) as p: #argv satisfies execution args here.
         (p
              | 'read bq table' >> beam.io.Read(beam.io.BigQuerySource('cpb100-213205:sample.ml_sample'))
-             | 'similarity of score' >> (beam.ParDo(OpenEnded()))
              | 'multiple choice flags' >> (beam.ParDo(MultipleChoice()))
              | 'model prediction' >> (beam.ParDo(MlPrediction()))
              | 'write to bq' >> beam.io.Write(beam.io.BigQuerySink(
