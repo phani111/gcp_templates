@@ -1,0 +1,8 @@
+# Note that class SUPER initiation in these frameworks is only supported in python2.7
+# Python 3 can be used for built in functions, but UDF ParDo's are not yet supported
+apache-beam
+apache-beam[gcp]
+mysql
+mysql-connector-python
+mysqlclient
+cython
